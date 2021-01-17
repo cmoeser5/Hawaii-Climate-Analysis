@@ -1,15 +1,15 @@
 # Hawaii Climate Analysis
 
-### Background
+## Background
 Used Python and SQLAlchemy to do basic climate analysis and data exploration of a Hawaii climate database that contains precipitation and temperature observations across 9 stations. Created a Flask API based on the analysis and SQLAlchemy ORM queries.
 
-### Technologies Used
+## Technologies Used
 * Python
 * SQLAlchemy
 * Panadas
 * Matplotlib
 
-### Data Analysis and Exploration
+## Data Analysis and Exploration
 Set up base, created classes for each table and connected to the sqlite database.
 
 ```python
@@ -127,3 +127,61 @@ plt.savefig("Images/histogram.png")
 plt.show()
 ```
 ![histogram](Images/histogram.png)
+
+## Temperature Analysis
+Analyzed min, max and avg temperatures for a specific date range using previous years data. Plotted the min, max and avg temperatures from the query on a bar chart.
+
+```python
+# create a function that will accept start date and end date, returning the min, avg and max temps for a date range
+def calc_temps(start_date, end_date):
+    """TMIN, TAVG, and TMAX for a list of dates.
+    
+    Args:
+        start_date (string): A date string in the format %Y-%m-%d
+        end_date (string): A date string in the format %Y-%m-%d
+        
+    Returns:
+        TMIN, TAVE, and TMAX
+    """
+
+    return (
+        session.query(
+            func.min(Measurement.tobs),
+            func.avg(Measurement.tobs),
+            func.max(Measurement.tobs),
+        )
+        .filter(Measurement.date >= start_date)
+        .filter(Measurement.date <= end_date)
+        .all()
+    )
+
+# using function `calc_temps` to calculate the tmin, tavg, and tmax for date range using the previous year's data for those same dates.
+prev_year_start = dt.date(2018, 5, 1) - dt.timedelta(days=365)
+prev_year_end = dt.date(2018, 5, 7) - dt.timedelta(days=365)
+
+tmin, tavg, tmax = calc_temps(
+    prev_year_start.strftime("%Y-%m-%d"), prev_year_end.strftime("%Y-%m-%d")
+)[0]
+
+# plot the results in a bar chart and use the peak-to-peak (tmax-tmin) value as the y error bar (yerr)
+tmin = t[0][0]
+tavg = t[0][1]
+tmax = t[0][2]
+yerr = tmax - tmin
+
+plt.figure(figsize=(2, 10))
+plt.bar(0, tavg, yerr=yerr, align="center", width=1, color="blue", alpha=0.5)
+plt.ylim = (0, 100)
+plt.ylabel("average temperature(F)")
+plt.title("Trip Avg Temp")
+plt.savefig("Images/avg_temp.png")
+plt.show()
+```
+
+![avg_temp](Images/avg_temp.png)
+
+
+## Flask API Design
+Designed a Flask API based on the queries that were developed during the analysis above.
+
+```python
