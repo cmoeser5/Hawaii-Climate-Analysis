@@ -42,7 +42,8 @@ class Station(Base):
     elevation = Column(Float)
 ```
 
-Climate Anaylsis: Obtained the last 12 months of precipiation data, converted into a dataframe, and plotted a bar chart.
+### Climate Anaylsis: 
+Obtained the last 12 months of precipiation data, converted into a dataframe, and plotted a bar chart.
 
 ```python
 # design a query to retrieve the last 12 months of precipitation data and plot the results
@@ -77,7 +78,8 @@ plt.show()
 
 ![bar](Images/precipitation_bar.png)
 
-Station Analysis: Calculated total number of stations, found the most active stations by highest number of observations, obtained the last 12 months of temperature data for the most active station, and converted to a dataframe to plot a histogram
+### Station Analysis: 
+Calculated total number of stations, found the most active stations by highest number of observations, obtained the last 12 months of temperature data for the most active station, and converted to a dataframe to plot a histogram
 
 ```python
 # query to show how many stations are available in this dataset
@@ -128,7 +130,7 @@ plt.show()
 ```
 ![histogram](Images/histogram.png)
 
-## Temperature Analysis
+### Temperature Analysis:
 Analyzed min, max and avg temperatures for a specific date range using previous years data. Plotted the min, max and avg temperatures from the query on a bar chart.
 
 ```python
@@ -179,6 +181,91 @@ plt.show()
 ```
 
 ![avg_temp](Images/avg_temp.png)
+
+### Daily Rainfall Average:
+Calculated the rainfall per weather station using the years previous matching for the date range.
+
+```python
+# calculate the rainfall per weather station using previous year's matching dates
+start_date = "2017-05-01"
+end_date = "2017-05-07"
+
+sel = [
+    Station.station,
+    Station.name,
+    Station.latitude,
+    Station.longitude,
+    Station.elevation,
+    func.sum(Measurement.prcp),
+]
+
+results = (
+    session.query(*sel)
+    .filter(Measurement.station == Station.station)
+    .filter(Measurement.date >= start_date)
+    .filter(Measurement.date <= end_date)
+    .group_by(Station.name)
+    .order_by(func.sum(Measurement.prcp).desc())
+    .all()
+)
+```
+### Daily Temperature Normals:
+Calculated the daily minimum, maximum, and average temperatures for the tip date range and the plotted the results on an area plot.
+
+```python
+# define daily normals function
+def daily_normals(date):
+    """Daily Normals.
+    
+    Args:
+        date (str): A date string in the format '%m-%d'
+        
+    Returns:
+        A list of tuples containing the daily normals, tmin, tavg, and tmax
+    
+    """
+
+    sel = [
+        func.min(Measurement.tobs),
+        func.avg(Measurement.tobs),
+        func.max(Measurement.tobs),
+    ]
+    return (
+        session.query(*sel)
+        .filter(func.strftime("%m-%d", Measurement.date) == date)
+        .all()
+    )
+
+# calculate the daily normals for trip range
+
+trip_start = "2018-05-01"
+trip_end = "2018-05-07"
+
+# use the start and end date to create a range of dates
+trip_dates = pd.date_range(trip_start, trip_end, freq="D")
+
+trip_month_day = trip_dates.strftime("%m-%d")
+
+# loop through the list of %m-%d strings and calculate the normals for each date
+normals = []
+for date in trip_month_day:
+    normals.append(*daily_normals(date))
+normals
+
+# create a dataframe for date range and temp normals
+df = pd.DataFrame(normals, columns=["tmin", "tavg", "tmax"])
+df["date"] = trip_month_day
+df.set_index(["date"], inplace=True)
+
+# create an area plot
+df.plot(kind="area", stacked=False, x_compat=True, alpha=0.2)
+plt.tight_layout()
+plt.xlabel("Date")
+plt.savefig("Images/area_plot.png")
+plt.ylabel("Temperature")
+```
+
+![area_plot](Images/area_plot.png)
 
 
 ## Flask API Design
