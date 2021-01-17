@@ -433,3 +433,8 @@ def start_end(start_entry, end_entry):
                             'Highest Temperature: ' + str(tmax)])
         return jsonify(result_temps)
 ```
+
+## Conclusions
+After analyzing the daily precipitations and temperatures of the different weather stations in Hawaii, we can conclude the following:
+* Highest average precipitation occurs during the Fall months of 2016 and decreases throughout the rest of the year until the average precipitation picks up during the late Winter and early Spring.
+* The most active station, USC00519281, recorded the highest number of temperature and precipitation observations. The highest temperature observation was 76 degrees F with over 60 recorded observations.
