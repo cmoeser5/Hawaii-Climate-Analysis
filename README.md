@@ -297,3 +297,139 @@ def welcome():
         f"Enter both a start and end dates (yyyy-mm-dd) to retrieve the minimum, maximum and average temperatures for that date range: /api/v1.0/<start>/<end>"
     )
 ```
+#### Precipitation Route
+This route will show the precipitation measurements over the last 12 months.
+
+```python
+@app.route("/api/v1.0/precipitation")
+def precipitation():
+    
+    # Query Measurement
+    results = (session.query(Measurement.date, Measurement.tobs)
+                      .order_by(Measurement.date))
+    
+    # Create a dictionary
+    precipitation_date_tobs = []
+    for each_row in results:
+        dt_dict = {}
+        dt_dict["date"] = each_row.date
+        dt_dict["tobs"] = each_row.tobs
+        precipitation_date_tobs.append(dt_dict)
+
+    return jsonify(precipitation_date_tobs)
+```
+
+#### Stations Route
+This route will show a list of all the stations in Hawaii and their respective station numbers.
+
+```python
+@app.route("/api/v1.0/stations")
+def stations():
+
+    # Query Measurement
+    results = session.query(Station.name).all()
+
+    # Convert list of tuples into normal list
+    station_details = list(np.ravel(results))
+    return jsonify(station_details)
+```
+
+#### Temperature Observation Route
+This route will show the temperature observations at the most active station over the last 12 months.
+
+```python
+@app.route("/api/v1.0/tobs")
+def temp_monthly():
+    # Calculate the date 1 year ago from last date in database
+    prev_year = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+
+    # Query the primary station for all tobs from the last year
+    results = session.query(Measurement.tobs).\
+        filter(Measurement.station == 'USC00519281').\
+        filter(Measurement.date >= prev_year).all()
+
+    # Convert list of tuples into normal list
+    temps_detail = list(np.ravel(results))
+
+    return jsonify(temps_detail)
+```
+
+#### Start-End for Given Dates Route
+These routes will show the minimum, maximum and average temperatures for either a specified start date or a range of dates.
+
+```python
+@app.route("/api/v1.0/<start>")
+def start_only(start):
+    
+    # Query the max date
+    date_max = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    date_max_str = str(date_max)
+    date_max_str = re.sub("'|,", "",date_max_str)
+    print (date_max_str)
+    
+    # Query the min date
+    date_min = session.query(Measurement.date).first()
+    date_min_str = str(date_min)
+    date_min_str = re.sub("'|,", "",date_min_str)
+    print (date_min_str)
+    
+    # Check for valid start date
+    start_entry = session.query(exists().where(Measurement.date == start)).scalar()
+ 
+    if start_entry:
+
+        results = (session.query(func.min(Measurement.tobs)
+                    ,func.avg(Measurement.tobs)
+                    ,func.max(Measurement.tobs))
+                   .filter(Measurement.date >= start).all())
+
+        tmin =results[0][0]
+        tavg ='{0:.2}'.format(results[0][1])
+        tmax =results[0][2]
+    
+        result_temps =( ['Entered Start Date: ' + start,
+                            'Lowest Temperature: '  + str(tmin),
+                            'Average Temperature: ' + str(tavg),
+                            'Highest Temperature: ' + str(tmax)])
+        return jsonify(result_temps)
+    
+@app.route("/api/v1.0/<start>/<end>")
+def start_end(start_entry, end_entry):
+    
+    # Query the max date
+    date_max = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    date_max_str = str(date_max)
+    date_max_str = re.sub("'|,", "",date_max_str)
+    print (date_max_str)
+    
+    # Query the min date
+    date_min = session.query(Measurement.date).first()
+    date_min_str = str(date_min)
+    date_min_str = re.sub("'|,", "",date_min_str)
+    print (date_min_str)
+    
+     # Check for valid start date
+    start_entry = session.query(exists().where(Measurement.date == start)).scalar()
+    
+     # Check for valid end date
+    end_entry = session.query(exists().where(Measurement.date == end)).scalar()
+    
+    if start_entry and end_entry:
+
+        results = (session.query(func.min(Measurement.tobs)
+                    ,func.avg(Measurement.tobs)
+                    ,func.max(Measurement.tobs))
+                        .filter(Measurement.date >= start)
+                        .filter(Measurement.date <= end).all())
+
+        tmin =results[0][0]
+        tavg ='{0:.2}'.format(results[0][1])
+        tmax =results[0][2]
+    
+        result_temps=( ['Entered Start Date: ' + start,
+                            'Entered End Date: ' + end,
+                            'Lowest Temperature: '  + str(tmin),
+                            'Average Temperature: ' + str(tavg),
+                            'Highest Temperature: ' + str(tmax)])
+        return jsonify(result_temps)
+```
