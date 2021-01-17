@@ -272,3 +272,28 @@ plt.ylabel("Temperature")
 Designed a Flask API based on the queries that were developed during the analysis above.
 
 ```python
+# create session and engine to link to database
+engine = create_engine("sqlite:///hawaii.sqlite",
+                       connect_args={'check_same_thread': False})
+session = Session(engine)
+
+# establish app
+app = Flask(__name__)
+```
+
+#### Homepage Route
+Created this route to show all available routes for the API.
+
+```python
+@app.route("/")
+def welcome():
+    return (
+        f"Welcome to the Hawaii Climate Analysis App Homepage!<br/>"
+        f"Available Routes Below:<br/>"
+        f"Precipitation measurement over the last 12 months: /api/v1.0/precipitation<br/>"
+        f"A list of stations and their respective station numbers: /api/v1.0/stations<br/>"
+        f"Temperatures observations at the most active station over the previous 12 months: /api/v1.0/tobs<br/>"
+        f"Enter a start date (yyyy-mm-dd) to retrieve the minimum, maximum, and average temperatures for all dates after the specified date: /api/v1.0/<start><br/>"
+        f"Enter both a start and end dates (yyyy-mm-dd) to retrieve the minimum, maximum and average temperatures for that date range: /api/v1.0/<start>/<end>"
+    )
+```
