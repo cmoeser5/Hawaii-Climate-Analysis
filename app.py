@@ -1,7 +1,7 @@
+# set up dependencies
 import datetime as dt
 import numpy as np
 import pandas as pd
-
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
@@ -30,13 +30,13 @@ app = Flask(__name__)
 @app.route("/")
 def welcome():
     return (
-        f"Hawaii Climate Analysis<br/>"
-        f"Available Routes:<br/>"
-        f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start><br/>"
-        f"/api/v1.0/<start>/<end>"
+        f"Welcome to the Hawaii Climate Analysis App Homepage!<br/>"
+        f"Available Routes Below:<br/>"
+        f"Precipitation measurement over the last 12 months: /api/v1.0/precipitation<br/>"
+        f"A list of stations and their respective station numbers: /api/v1.0/stations<br/>"
+        f"Temperatures observations at the most active station over the previous 12 months: /api/v1.0/tobs<br/>"
+        f"Enter a start date (yyyy-mm-dd) to retrieve the minimum, maximum, and average temperatures for all dates after the specified date: /api/v1.0/<start><br/>"
+        f"Enter both a start and end dates (yyyy-mm-dd) to retrieve the minimum, maximum and average temperatures for that date range: /api/v1.0/<start>/<end>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -120,7 +120,7 @@ def start_only(start):
         return jsonify(result_temps)
     
 @app.route("/api/v1.0/<start>/<end>")
-def start_end():
+def start_end(start_entry, end_entry):
     
     # Query the max date
     date_max = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
