@@ -41,3 +41,39 @@ class Station(Base):
     longitude = Column(Float)
     elevation = Column(Float)
 ```
+
+Climate Anaylsis: Obtained the last 12 months of precipiation data, converted into a dataframe, and plotted a bar chart.
+
+```python
+# design a query to retrieve the last 12 months of precipitation data and plot the results
+query = (
+    session.query(Measurement.date, func.avg(Measurement.prcp))
+    .filter(Measurement.date >= start_date)
+    .filter(Measurement.date <= end_date)
+    .group_by(Measurement.date)
+)
+
+# save the query results as a Pandas DataFrame and set the index to the date column
+prcp_df = (
+    pd.read_sql(query.statement, query.session.bind, index_col="date")
+    .rename(columns={"avg_1": "precipitation"})
+    .sort_index()
+)
+
+# using Pandas plotting with Matplotlib to plot the data
+prcp_df.plot(
+    kind="bar",
+    title="Average Daily Precipitation at Hawaii Weather Stations",
+    figsize=(10, 10),
+    width=3,
+    legend=False,
+)
+plt.locator_params(axis="x", nbins=9.5)
+plt.xlabel("Date")
+plt.ylabel("Inches")
+plt.savefig("Images/precipitation_bar.png")
+plt.show()
+```
+
+![bar](Images/precipitation_bar.png)
+
