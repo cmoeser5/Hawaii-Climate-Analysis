@@ -6,7 +6,7 @@ Used Python and SQLAlchemy to do basic climate analysis and data exploration of 
 ## Technologies Used
 * Python
 * SQLAlchemy
-* Panadas
+* Pandas
 * Matplotlib
 
 ## Data Analysis and Exploration
